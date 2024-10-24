@@ -7,8 +7,9 @@
 #include "objects.h"
 
 // Some non-LED pins are used for serial debugging and other important things
-// const uint NOT_LEDS_MASK = 0x380f803;
-const uint LEDS_MASK = ~0x380f803;
+// this is a silly way to write this since I only ever use it with ~, but I 
+// guessed wrong and figured out the bit mask this way first
+const uint NOT_LEDS_MASK = 0x380f803;
 
 const uint IR_SENSOR = 14;
 const uint ROTATIONAL_SLICES = 40;
@@ -36,8 +37,8 @@ uint row_masks[9] = {0x8000004, 0x4000008, 0x400010, 0x200020, 0x100040, 0x80080
 // output mask chooses which pixels in that row light up
 int light_up_masked(uint high_mask, uint output_mask)
 {
-    gpio_put_masked(LEDS_MASK, high_mask);
-    gpio_set_dir_masked(LEDS_MASK, output_mask);
+    gpio_put_masked(~NOT_LEDS_MASK, high_mask);
+    gpio_set_dir_masked(~NOT_LEDS_MASK, output_mask);
     return 0;
 }
 
@@ -76,7 +77,7 @@ int main()
     stdio_init_all();
 
     // Initialize all the LED pins
-    gpio_init_mask(LEDS_MASK);
+    gpio_init_mask(~NOT_LEDS_MASK);
 
     for (int i = 2; i <= 29; i++)
     {
@@ -84,14 +85,14 @@ int main()
     }
 
     gpio_init(IR_SENSOR);
-    // false is input
+    // false means input
     gpio_set_dir(IR_SENSOR, false);
     gpio_set_irq_enabled_with_callback(IR_SENSOR, GPIO_IRQ_EDGE_RISE, true, &update_delay);
     
     while (1)
     {   
             make_a_pattern(a_cube[SLICE], delay);
-            if (SLICE < 39)
+            if (SLICE < (ROTATIONAL_SLICES - 1))
             {
                 SLICE++;
             }
